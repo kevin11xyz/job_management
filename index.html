@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Job Management with Print Invoice</title>
+  <style>
+    :root {
+      --primary: #6e00ff;
+      --primary-light: rgba(110, 0, 255, 0.7);
+      --secondary: #ff00aa;
+      --accent: #00ffcc;
+      --dark: #0f0f1a;
+      --darker: #0a0a12;
+      --light: #f0f0ff;
+      --lighter: #ffffff;
+      --success: #4CAF50;
+      --warning: #FFA500;
+      --info: #2196F3;
+      --danger: #ff4444;
+      
+      --glass: rgba(255, 255, 255, 0.05);
+      --glass-border: rgba(255, 255, 255, 0.1);
+      --glass-accent: rgba(110, 0, 255, 0.15);
+      
+      --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.15);
+      --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.25);
+      --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.35);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--dark);
+      color: var(--light);
+      min-height: 100vh;
+      background-image: 
+        radial-gradient(circle at 25% 25%, var(--primary-light) 0%, transparent 60%),
+        radial-gradient(circle at 75% 75%, var(--secondary) 0%, transparent 60%);
+      background-attachment: fixed;
+      line-height: 1.6;
+    }
+
+    /* Top Navigation Bar - Modern Glass Effect */
+    .topnav {
+      background: rgba(15, 15, 26, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      z-index: 1000;
+      padding: 12px 24px;
+      box-shadow: var(--shadow-md);
+      border-bottom: 1px solid var(--glass-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .topnav button {
+      background: rgba(110, 0, 255, 0.3);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 600;
+    }
+
+    .topnav button:hover {
+      background: rgba(110, 0, 255, 0.5);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(110, 0, 255, 0.3);
+    }
+
+    /* Main Content */
+    .main-content {
+      max-width: 800px;
+      margin: 80px auto 40px;
+      padding: 20px;
+    }
+
+    /* Form Container - Glass Panel */
+    #formContainer {
+      background: rgba(15, 15, 26, 0.8);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-radius: 16px;
+      padding: 30px;
+      box-shadow: var(--shadow-lg);
+      border: 1px solid var(--glass-border);
+      transition: all 0.3s ease;
+    }
+
+    #formContainer.editing-form {
+      animation: pulse-glow 2s infinite;
+      border: 2px solid var(--accent);
+    }
+
+    @keyframes pulse-glow {
+      0% { box-shadow: 0 0 15px rgba(0, 255, 204, 0.3); }
+      50% { box-shadow: 0 0 25px rgba(0, 255, 204, 0.5); }
+      100% { box-shadow: 0 0 15px rgba(0, 255, 204, 0.3); }
+    }
+
+    h2 {
+      font-size: 1.8rem;
+      margin-bottom: 20px;
+      color: var(--accent);
+      text-align: center;
+    }
+
+    /* Form Elements */
+    input, textarea, select {
+      width: 100%;
+      padding: 12px 16px;
+      margin: 8px 0;
+      font-size: 16px;
+      background: rgba(30, 30, 60, 0.5);
+      border: 1px solid var(--glass-border);
+      border-radius: 8px;
+      color: var(--light);
+      transition: all 0.3s ease;
+    }
+
+    input:focus, textarea:focus, select:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--glass-accent);
+    }
+
+    textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+
+    /* Button Group */
+    .button-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .button-group button {
+      flex: 1 1 30%;
+      min-width: 120px;
+    }
+
+    /* Buttons */
+    button {
+      padding: 12px 20px;
+      border-radius: 8px;
+      border: none;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 600;
+    }
+
+    #saveButton {
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      color: white;
+    }
+
+    #saveButton:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(110, 0, 255, 0.3);
+    }
+
+    .update-btn {
+      background: linear-gradient(135deg, #FF9800, #FFB74D);
+      color: white;
+    }
+
+    .update-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(255, 152, 0, 0.3);
+    }
+
+    .button-group button:nth-child(2) {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--light);
+    }
+
+    .button-group button:nth-child(2):hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .button-group button:nth-child(3) {
+      background: linear-gradient(135deg, var(--info), #64B5F6);
+      color: white;
+    }
+
+    .button-group button:nth-child(3):hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(33, 150, 243, 0.3);
+    }
+
+    /* Modal - Modern Glass Design */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1001;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0,0,0,0.6);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .modal-content {
+      background: rgba(15, 15, 26, 0.95);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      margin: 5% auto;
+      padding: 30px;
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      width: 90%;
+      max-width: 1200px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: var(--shadow-lg);
+      animation: slideDown 0.3s ease-out;
+    }
+
+    @keyframes slideDown {
+      from { 
+        transform: translateY(-50px);
+        opacity: 0;
+      }
+      to { 
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .close {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .close:hover {
+      color: var(--light);
+      transform: rotate(90deg);
+    }
+
+    /* Job History Table - Modern Styling */
+    #jobHistoryTable {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      margin-top: 20px;
+      background: rgba(30, 30, 60, 0.3);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    #jobHistoryTable th {
+      background: rgba(110, 0, 255, 0.3);
+      color: var(--light);
+      padding: 16px;
+      text-align: left;
+      position: sticky;
+      top: 0;
+      backdrop-filter: blur(12px);
+    }
+
+    #jobHistoryTable td {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--glass-border);
+      transition: all 0.3s ease;
+    }
+
+    #jobHistoryTable tr:last-child td {
+      border-bottom: none;
+    }
+
+    #jobHistoryTable tr:hover td {
+      background: rgba(110, 0, 255, 0.1);
+    }
+
+    /* Status Badges - Modern */
+    .status-pending {
+      color: var(--warning);
+      font-weight: 600;
+      position: relative;
+      padding-left: 18px;
+    }
+
+    .status-pending::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--warning);
+      box-shadow: 0 0 8px var(--warning);
+    }
+
+    .status-in-progress {
+      color: var(--info);
+      font-weight: 600;
+      position: relative;
+      padding-left: 18px;
+    }
+
+    .status-in-progress::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--info);
+      box-shadow: 0 0 8px var(--info);
+    }
+
+    .status-completed {
+      color: var(--success);
+      font-weight: 600;
+      position: relative;
+      padding-left: 18px;
+    }
+
+    .status-completed::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 8px var(--success);
+    }
+
+    /* Action Buttons - Modern */
+    .action-btn {
+      padding: 8px 12px;
+      margin: 2px;
+      font-size: 13px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .action-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+
+    .view-btn {
+      background: var(--info);
+      color: white;
+    }
+
+    .edit-btn {
+      background: var(--success);
+      color: white;
+    }
+
+    .delete-btn {
+      background: var(--danger);
+      color: white;
+    }
+
+    /* Search Box - Modern */
+    .search-container {
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    #searchInput {
+      width: 100%;
+      padding: 12px 16px 12px 42px;
+      background: rgba(30, 30, 60, 0.5);
+      border: 1px solid var(--glass-border);
+      border-radius: 8px;
+      color: var(--light);
+      font-size: 16px;
+      transition: all 0.3s ease;
+    }
+
+    #searchInput:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--glass-accent);
+    }
+
+    .search-container::before {
+      content: '🔍';
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      opacity: 0.7;
+    }
+
+    /* Pagination - Modern */
+    .pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-top: 20px;
+      gap: 10px;
+    }
+
+    .pagination button {
+      padding: 8px 16px;
+      background: rgba(110, 0, 255, 0.3);
+      color: var(--light);
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .pagination button:hover:not(:disabled) {
+      background: var(--primary);
+      transform: translateY(-2px);
+    }
+
+    .pagination button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .page-info {
+      margin: 0 10px;
+      font-size: 14px;
+      color: rgba(255,255,255,0.7);
+    }
+
+    /* Responsive Adjustments */
+    @media (max-width: 768px) {
+      .main-content {
+        padding: 15px;
+        margin: 70px auto 20px;
+      }
+      
+      #formContainer {
+        padding: 20px;
+      }
+      
+      .button-group {
+        flex-direction: column;
+      }
+      
+      .button-group button {
+        width: 100%;
+      }
+      
+      .modal-content {
+        padding: 20px;
+        width: 95%;
+      }
+    }
+
+    /* Print Styles */
+    @media print {
+      body {
+        background: white !important;
+        color: black !important;
+        padding: 0 !important;
+      }
+      
+      .topnav, .modal {
+        display: none !important;
+      }
+      
+      #formContainer {
+        background: white !important;
+        box-shadow: none !important;
+        border: none !important;
+        padding: 0 !important;
+      }
+      
+      .button-group {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation Bar -->
+  <div class="topnav">
+    <button onclick="viewJobHistory()">View Job History</button>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <!-- Form Container -->
+    <div id="formContainer">
+      <h2>Job Management Form</h2>
+
+      <label>Customer Name</label>
+      <input type="text" id="customerName">
+
+      <label>Phone Model</label>
+      <input type="text" id="phoneModel">
+
+      <label>Description</label>
+      <textarea id="description" rows="3"></textarea>
+
+      <label>Technician</label>
+      <input type="text" id="technician">
+
+      <label>Advanced Price</label>
+      <input type="number" id="advancedPrice">
+
+      <label>Full Price</label>
+      <input type="number" id="fullPrice">
+
+      <label>Status</label>
+      <select id="status">
+        <option value="Pending">Pending</option>
+        <option value="In Progress">In Progress</option>
+        <option value="Completed">Completed</option>
+      </select>
+
+      <label>Job ID (Auto)</label>
+      <input type="text" id="jobId" readonly>
+
+      <div class="button-group">
+        <button id="saveButton" onclick="submitJob()">Save to Firebase</button>
+        <button onclick="clearForm()">Clear All</button>
+        <button onclick="printJob()">Print Invoice</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Job History Modal -->
+  <div id="historyModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal()">&times;</span>
+      <h2>Job History</h2>
+      
+      <div class="search-container">
+        <input type="text" id="searchInput" onkeyup="searchJobs()" placeholder="Search for jobs...">
+      </div>
+      
+      <table id="jobHistoryTable">
+        <thead>
+          <tr>
+            <th>Date & Time</th>
+            <th>Job ID</th>
+            <th>Customer</th>
+            <th>Model</th>
+            <th>Technician</th>
+            <th>Total (Rs.)</th>
+            <th>Advanced (Rs.)</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="jobHistoryBody">
+          <!-- Job history will be loaded here -->
+        </tbody>
+      </table>
+      
+      <div class="pagination">
+        <button onclick="changePage(-1)">Previous</button>
+        <span class="page-info" id="pageInfo">Page 1 of 1</span>
+        <button onclick="changePage(1)">Next</button>
+      </div>
+    </div>
+  </div>
+  
+
+  <!-- Firebase SDKs -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getDatabase, ref, set, get, child, remove, update } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCddKRuTHpHtaQ0rLOkMOAb5q6slJ3-ybs",
+      authDomain: "project-29b6a.firebaseapp.com",
+      databaseURL: "https://project-29b6a-default-rtdb.firebaseio.com",
+      projectId: "project-29b6a",
+      storageBucket: "project-29b6a.appspot.com",
+      messagingSenderId: "731238594321",
+      appId: "1:731238594321:web:71c168ad6f35df2944feb0",
+      measurementId: "G-009NX2LKRX"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // Pagination variables
+    let currentPage = 1;
+    const jobsPerPage = 10;
+    let allJobs = [];
+    let filteredJobs = [];
+
+    // Generate unique ID
+    window.generateUniqueId = function (prefix) {
+      const timestamp = Date.now();
+      const random = Math.floor(Math.random() * 1000);
+      return prefix + '-' + timestamp + '-' + random;
+    };
+
+    // Set auto IDs
+    window.setAutoIds = function () {
+      document.getElementById('jobId').value = generateUniqueId('JOB');
+    };
+
+    // Clear text inputs
+    window.clearTextInputs = function () {
+      document.getElementById('customerName').value = '';
+      document.getElementById('phoneModel').value = '';
+      document.getElementById('description').value = '';
+      document.getElementById('technician').value = '';
+      document.getElementById('advancedPrice').value = '';
+      document.getElementById('fullPrice').value = '';
+      document.getElementById('status').value = 'Pending';
+    };
+
+    // Clear entire form
+    window.clearForm = function () {
+      clearTextInputs();
+      setAutoIds();
+      
+      // Change button back to Save if it was Update
+      const saveButton = document.getElementById('saveButton');
+      saveButton.textContent = 'Save to Firebase';
+      saveButton.className = '';
+      saveButton.onclick = submitJob;
+      
+      // Remove editing style
+      document.getElementById('formContainer').classList.remove('editing-form');
+    };
+
+    // Submit job to Firebase
+    window.submitJob = function () {
+      const jobId = document.getElementById('jobId').value;
+      const timestamp = new Date().toISOString();
+      const formattedDate = new Date().toLocaleString();
+
+      const job = {
+        customer: document.getElementById('customerName').value,
+        model: document.getElementById('phoneModel').value,
+        description: document.getElementById('description').value,
+        technician: document.getElementById('technician').value,
+        advanced: document.getElementById('advancedPrice').value,
+        full: document.getElementById('fullPrice').value,
+        status: document.getElementById('status').value,
+        jobId: jobId,
+        timestamp: timestamp,
+        formattedDate: formattedDate
+      };
+
+      set(ref(db, 'Jobs/' + jobId), job)
+        .then(() => {
+          alert("Job saved successfully to Firebase!");
+          setAutoIds();
+          clearTextInputs();
+        })
+        .catch((error) => {
+          alert("Error saving job: " + error);
+        });
+    };
+
+    // Print job invoice
+    window.printJob = function () {
+      const job = {
+        customer: document.getElementById('customerName').value,
+        model: document.getElementById('phoneModel').value,
+        description: document.getElementById('description').value,
+        technician: document.getElementById('technician').value,
+        advanced: document.getElementById('advancedPrice').value,
+        full: document.getElementById('fullPrice').value,
+        status: document.getElementById('status').value,
+        jobId: document.getElementById('jobId').value
+      };
+
+      openPrintWindow(job);
+    };
+
+    // Open print window with job data
+    function openPrintWindow(job) {
+      const date = new Date().toLocaleDateString();
+
+      const printWindow = window.open('', '_blank');
+      printWindow.document.write(`
+        <html>
+<head>
+  <title>Invoice - ${job.jobId}</title>
+  <style>
+    @page {
+      size: A2;
+      margin: 20mm;
+    }
+    body { 
+      font-family: Arial, sans-serif; 
+      padding: 40px;
+      font-size: 24px;
+      line-height: 1.6;
+    }
+    h1 { 
+      text-align: center; 
+      font-size: 48px;
+      margin-bottom: 30px;
+    }
+    .section-title { 
+      font-weight: bold; 
+      margin-top: 40px;
+      font-size: 28px;
+    }
+    table { 
+      width: 100%; 
+      border-collapse: collapse; 
+      margin-top: 20px;
+      font-size: 24px;
+    }
+    td, th { 
+      border: 2px solid #ccc; 
+      padding: 15px; 
+      text-align: left; 
+    }
+    .total-row td { 
+      border: none; 
+    }
+    .right { 
+      text-align: right; 
+    }
+    button {
+      font-size: 28px;
+      padding: 15px 30px;
+      margin: 20px 15px 0 0;
+    }
+    .customer-info, .device-info, .repair-desc {
+       
+      margin-bottom: 20px;
+      padding: 15px;
+      background-color: #f9f9f9;
+      border-radius: 8px;
+    }
+
+    @media print {
+      button {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>INVOICE</h1>
+  <div><strong>Date:</strong> ${date}</div>
+  <div><strong>Job ID:</strong> ${job.jobId}</div>
+
+  <div class="section-title">Customer Information</div>
+  <div class="customer-info">${job.customer}</div>
+
+  <div class="section-title">Device Information</div>
+  <div class="device-info">${job.model}</div>
+
+  <div class="section-title">Technician</div>
+  <div class="device-info">${job.technician || 'Not specified'}</div>
+
+  <div class="section-title">Repair Description</div>
+  <div class="repair-desc">${job.description}</div>
+
+  <div class="section-title">Repair Items and Pricing</div>
+  <table>
+    <thead>
+      <tr>
+        <th>Item/Service</th>
+        <th>Description</th>
+        <th>Quantity</th>
+        <th>Unit Price (Rs.)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Repair</td>
+        <td>${job.description}</td>
+        <td>1</td>
+        <td>${job.full}</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <table>
+    <tr class="total-row">
+      <td class="right" colspan="3"><strong>Subtotal:</strong></td>
+      <td>Rs. ${job.full}</td>
+    </tr>
+    <tr class="total-row">
+      <td class="right" colspan="3">Advanced Paid:</td>
+      <td>Rs. ${job.advanced}</td>
+    </tr>
+    <tr class="total-row">
+      <td class="right" colspan="3"><strong>Total Due:</strong></td>
+      <td>Rs. ${job.full - job.advanced}</td>
+    </tr>
+  </table>
+
+  <br><br>
+  <button onclick="window.print()">Print</button>
+  <button onclick="window.close()">Close</button>
+  <button onclick="window.opener.submitJobFromPrintWindow(${JSON.stringify(job).replace(/"/g, '&quot;')})">Save to Firebase</button>
+</body>
+</html>
+      `);
+      printWindow.document.close();
+    }
+
+    // Function to submit job from print window
+    window.submitJobFromPrintWindow = function(job) {
+      set(ref(db, 'Jobs/' + job.jobId), job)
+        .then(() => {
+          alert("Job saved successfully to Firebase!");
+          // Refresh job history if modal is open
+          if (document.getElementById("historyModal").style.display === "block") {
+            viewJobHistory();
+          }
+        })
+        .catch((error) => {
+          alert("Error saving job: " + error);
+        });
+    }
+
+    // Search function for job history
+    window.searchJobs = function() {
+      const input = document.getElementById("searchInput");
+      const filter = input.value.toUpperCase();
+      
+      if (filter === '') {
+        filteredJobs = [...allJobs];
+      } else {
+        filteredJobs = allJobs.filter(job => {
+          return (
+            (job.customer && job.customer.toUpperCase().includes(filter)) ||
+            (job.model && job.model.toUpperCase().includes(filter)) ||
+            (job.jobId && job.jobId.toUpperCase().includes(filter)) ||
+            (job.technician && job.technician.toUpperCase().includes(filter)) ||
+            (job.description && job.description.toUpperCase().includes(filter))
+          );
+        });
+      }
+      
+      currentPage = 1;
+      renderJobHistory();
+    };
+
+    // Change page
+    window.changePage = function(direction) {
+      const newPage = currentPage + direction;
+      const totalPages = Math.ceil(filteredJobs.length / jobsPerPage);
+      
+      if (newPage > 0 && newPage <= totalPages) {
+        currentPage = newPage;
+        renderJobHistory();
+      }
+    };
+
+    // Delete job
+    function deleteJob(jobId) {
+      if (confirm("Are you sure you want to delete this job?")) {
+        remove(ref(db, 'Jobs/' + jobId))
+          .then(() => {
+            // Update local data
+            allJobs = allJobs.filter(job => job.jobId !== jobId);
+            filteredJobs = filteredJobs.filter(job => job.jobId !== jobId);
+            
+            renderJobHistory();
+            alert("Job deleted successfully!");
+          })
+          .catch((error) => {
+            alert("Error deleting job: " + error);
+          });
+      }
+    }
+
+    // View job details in print window
+    window.viewJobDetails = function(job) {
+      openPrintWindow(job);
+    }
+
+    // Edit job - load into form
+    window.editJob = function(job) {
+      document.getElementById('customerName').value = job.customer || '';
+      document.getElementById('phoneModel').value = job.model || '';
+      document.getElementById('description').value = job.description || '';
+      document.getElementById('technician').value = job.technician || '';
+      document.getElementById('advancedPrice').value = job.advanced || '';
+      document.getElementById('fullPrice').value = job.full || '';
+      document.getElementById('status').value = job.status || 'Pending';
+      document.getElementById('jobId').value = job.jobId || generateUniqueId('JOB');
+      
+      // Change the Save button to Update button
+      const saveButton = document.getElementById('saveButton');
+      saveButton.textContent = 'Update Job';
+      saveButton.className = 'update-btn';
+      saveButton.onclick = updateJob;
+      
+      // Add editing style to form
+      document.getElementById('formContainer').classList.add('editing-form');
+      
+      closeModal();
+      
+      // Scroll to the form
+      document.querySelector('body').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // Update job in Firebase
+    window.updateJob = function() {
+      const jobId = document.getElementById('jobId').value;
+      const timestamp = new Date().toISOString();
+      const formattedDate = new Date().toLocaleString();
+
+      const job = {
+        customer: document.getElementById('customerName').value,
+        model: document.getElementById('phoneModel').value,
+        description: document.getElementById('description').value,
+        technician: document.getElementById('technician').value,
+        advanced: document.getElementById('advancedPrice').value,
+        full: document.getElementById('fullPrice').value,
+        status: document.getElementById('status').value,
+        jobId: jobId,
+        timestamp: timestamp,
+        formattedDate: formattedDate
+      };
+
+      set(ref(db, 'Jobs/' + jobId), job)
+        .then(() => {
+          alert("Job updated successfully!");
+          
+          // Change button back to Save
+          const saveButton = document.getElementById('saveButton');
+          saveButton.textContent = 'Save to Firebase';
+          saveButton.className = '';
+          saveButton.onclick = submitJob;
+          
+          // Remove editing style
+          document.getElementById('formContainer').classList.remove('editing-form');
+          
+          // Update local data
+          const jobIndex = allJobs.findIndex(j => j.jobId === jobId);
+          if (jobIndex !== -1) {
+            allJobs[jobIndex] = job;
+          }
+          
+          const filteredIndex = filteredJobs.findIndex(j => j.jobId === jobId);
+          if (filteredIndex !== -1) {
+            filteredJobs[filteredIndex] = job;
+          }
+          
+          // Refresh job history if modal is open
+          if (document.getElementById("historyModal").style.display === "block") {
+            renderJobHistory();
+          }
+        })
+        .catch((error) => {
+          alert("Error updating job: " + error);
+        });
+    }
+
+    // Render job history table
+    function renderJobHistory() {
+      const tableBody = document.getElementById("jobHistoryBody");
+      tableBody.innerHTML = "";
+      
+      const startIndex = (currentPage - 1) * jobsPerPage;
+      const endIndex = Math.min(startIndex + jobsPerPage, filteredJobs.length);
+      const jobsToShow = filteredJobs.slice(startIndex, endIndex);
+      
+      if (jobsToShow.length === 0) {
+        tableBody.innerHTML = `
+          <tr>
+            <td colspan="9" style="text-align: center;">No jobs found</td>
+          </tr>
+        `;
+        return;
+      }
+      
+      jobsToShow.forEach(job => {
+        const row = document.createElement("tr");
+        
+        // Determine status class
+        let statusClass = "";
+        if (job.status === "Pending") statusClass = "status-pending";
+        else if (job.status === "In Progress") statusClass = "status-in-progress";
+        else if (job.status === "Completed") statusClass = "status-completed";
+        
+        row.innerHTML = `
+          <td>${job.formattedDate || 'N/A'}</td>
+          <td>${job.jobId}</td>
+          <td>${job.customer || 'N/A'}</td>
+          <td>${job.model || 'N/A'}</td>
+          <td>${job.technician || 'N/A'}</td>
+          <td>Rs. ${job.full || '0'}</td>
+          <td>Rs. ${job.advanced || '0'}</td>
+          <td class="${statusClass}">${job.status || 'N/A'}</td>
+          <td>
+            <button class="action-btn view-btn" onclick="window.viewJobDetails(${JSON.stringify(job).replace(/"/g, '&quot;')})">View</button>
+            <button class="action-btn edit-btn" onclick="window.editJob(${JSON.stringify(job).replace(/"/g, '&quot;')})">Edit</button>
+            <button class="action-btn delete-btn" onclick="deleteJob('${job.jobId}')">Delete</button>
+          </td>
+        `;
+        
+        tableBody.appendChild(row);
+      });
+      
+      // Update pagination info
+      const totalPages = Math.ceil(filteredJobs.length / jobsPerPage);
+      document.getElementById("pageInfo").textContent = `Page ${currentPage} of ${totalPages}`;
+    }
+
+    // View job history
+    window.viewJobHistory = function() {
+      const modal = document.getElementById("historyModal");
+      modal.style.display = "block";
+      
+      // Show loading message
+      document.getElementById("jobHistoryBody").innerHTML = `
+        <tr>
+          <td colspan="9" style="text-align: center;">
+            <div style="padding: 20px;">Loading job history...</div>
+          </td>
+        </tr>
+      `;
+      
+      // Fetch job history from Firebase
+      get(child(ref(db), 'Jobs/'))
+        .then((snapshot) => {
+          if (snapshot.exists()) {
+            const jobs = snapshot.val();
+            allJobs = Object.values(jobs).sort((a, b) => 
+              new Date(b.timestamp) - new Date(a.timestamp));
+            filteredJobs = [...allJobs];
+            
+            currentPage = 1;
+            renderJobHistory();
+          } else {
+            allJobs = [];
+            filteredJobs = [];
+            renderJobHistory();
+          }
+        })
+        .catch((error) => {
+          console.error("Error fetching job history:", error);
+          document.getElementById("jobHistoryBody").innerHTML = `
+            <tr>
+              <td colspan="9" style="text-align: center; color: red;">
+                Error loading jobs: ${error.message}
+              </td>
+            </tr>
+          `;
+        });
+    };
+
+    // Close modal
+    window.closeModal = function() {
+      document.getElementById("historyModal").style.display = "none";
+    };
+
+    // Initialize on load
+    window.onload = function () {
+      setAutoIds();
+      
+      // Close modal when clicking outside of it
+      window.onclick = function(event) {
+        const modal = document.getElementById("historyModal");
+        if (event.target == modal) {
+          modal.style.display = "none";
+        }
+      }
+    };
+  </script>
+</body>
+</html>
